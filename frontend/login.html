@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Добро пожаловать — mental_stats</title>
+  <link rel="stylesheet" href="static/css/style.css">
+  <style>
+    .welcome-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: .5rem;
+    }
+    .role-card {
+      background: #fdf8ff;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .6rem;
+    }
+    .role-card:hover {
+      border-color: var(--lavender);
+      background: var(--lavender-soft);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(169,124,191,.2);
+    }
+    .role-card .role-icon { font-size: 2.4rem; }
+    .role-card .role-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--brown);
+    }
+    .role-card .role-desc {
+      font-size: .8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .divider {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: .85rem;
+      margin: .25rem 0 .5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container center">
+    <img src="static/img/logo.png" alt="logo" class="logo" onerror="this.style.display='none'">
+    <h1>mental_stats</h1>
+    <p class="subtitle">Система психологического мониторинга</p>
+
+    <!-- Экран выбора роли -->
+    <div id="welcomeCard" class="card">
+      <h2>Кто вы?</h2>
+      <div class="welcome-grid">
+        <div class="role-card" id="btnEmployee">
+          <span class="role-icon">👤</span>
+          <span class="role-title">Сотрудник</span>
+          <span class="role-desc">Войти и пройти психологический тест</span>
+        </div>
+        <a href="login_staff.html" class="role-card">
+          <span class="role-icon">🧑‍⚕️</span>
+          <span class="role-title">Специалист</span>
+          <span class="role-desc">Психолог или менеджер</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Форма входа сотрудника — скрыта по умолчанию -->
+    <div id="loginCard" class="card hidden">
+      <h2>Вход для сотрудника</h2>
+      <form id="loginForm">
+        <label>ФИО
+          <input type="text" id="fullName" placeholder="Иванова Анна Петровна" required>
+        </label>
+        <label>Пароль
+          <input type="password" id="password" required>
+        </label>
+        <button type="submit">Войти</button>
+      </form>
+      <p id="errorMsg" class="error hidden"></p>
+      <div class="divider">или</div>
+      <a class="btn-secondary" id="backBtn">← Назад</a>
+    </div>
+
+    <!-- Баннер напоминания -->
+    <div id="reminderBanner" class="hidden"></div>
+    <div id="goTestCard" class="card hidden">
+      <button class="btn" id="goTestBtn">Перейти к тесту →</button>
+    </div>
+  </div>
+
+  <script src="static/js/api.js"></script>
+  <script src="static/js/main.js"></script>
+  <script>
+    // Клик на "Сотрудник" — показываем форму
+    document.getElementById("btnEmployee").addEventListener("click", () => {
+      document.getElementById("welcomeCard").classList.add("hidden");
+      document.getElementById("loginCard").classList.remove("hidden");
+    });
+
+    // Кнопка "Назад"
+    document.getElementById("backBtn").addEventListener("click", () => {
+      document.getElementById("loginCard").classList.add("hidden");
+      document.getElementById("welcomeCard").classList.remove("hidden");
+      document.getElementById("errorMsg").classList.add("hidden");
+    });
+
+    // Вход
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errorMsg = document.getElementById("errorMsg");
+      errorMsg.classList.add("hidden");
+      try {
+        const result = await Api.login(
+          document.getElementById("fullName").value,
+          document.getElementById("password").value
+        );
+        sessionStorage.setItem("emp_id", result.emp_id);
+        sessionStorage.setItem("full_name", result.full_name);
+        showReminder(result.emp_id, result.full_name);
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.classList.remove("hidden");
+      }
+    });
+
+    async function showReminder(empId, fullName) {
+      document.getElementById("loginCard").classList.add("hidden");
+      const banner = document.getElementById("reminderBanner");
+      const goCard = document.getElementById("goTestCard");
+
+      let reminder;
+      try {
+        reminder = await Api.getReminder(empId);
+      } catch {
+        window.location.href = "assigment.html";
+        return;
+      }
+
+      if (reminder.due) {
+        banner.innerHTML = `
+          <div class="reminder-banner due">
+            <span class="reminder-icon">⏰</span>
+            <div class="reminder-text">
+              <strong>Пора пройти тест!</strong>
+              ${reminder.message}
+            </div>
+          </div>`;
+        banner.classList.remove("hidden");
+        setTimeout(() => { window.location.href = "assigment.html"; }, 2500);
+        return;
+      }
+
+      banner.innerHTML = `
+        <div class="reminder-banner ok">
+          <span class="reminder-icon">✅</span>
+          <div class="reminder-text">
+            <strong>Здравствуйте, ${fullName}!</strong>
+            ${reminder.message}
+          </div>
+        </div>`;
+      banner.classList.remove("hidden");
+      goCard.classList.remove("hidden");
+      document.getElementById("goTestBtn").textContent = "Войти в систему →";
+      document.getElementById("goTestBtn").onclick = () => {
+        alert("Вы вошли. Возвращайтесь, когда подойдёт время теста.");
+        window.location.reload();
+      };
+    }
+  </script>
+</body>
+</html>
