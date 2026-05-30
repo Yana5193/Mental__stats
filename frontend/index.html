@@ -5,96 +5,393 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Аналитика — mental_stats</title>
   <link rel="stylesheet" href="static/css/style.css">
+  <style>
+    .topbar {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;
+    }
+    .topbar-left { display: flex; align-items: center; gap: .75rem; }
+    .topbar-logo { width: 42px; height: 42px; border-radius: 50%; object-fit: contain; }
+    .topbar-actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+
+    .btn-action {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .5rem 1rem; border-radius: 8px;
+      font-size: .85rem; font-weight: 600; cursor: pointer;
+      font-family: inherit; border: 1.5px solid var(--border);
+      transition: all .15s; text-decoration: none;
+    }
+    .btn-action.lavender {
+      background: var(--lavender-soft); color: var(--brown);
+    }
+    .btn-action.lavender:hover { background: var(--lavender); color: #fff; border-color: var(--lavender); }
+    .btn-action.outline {
+      background: transparent; color: var(--text-muted);
+    }
+    .btn-action.outline:hover { background: var(--lavender-soft); color: var(--brown); }
+
+    .table-hint { font-size: .8rem; color: var(--text-muted); margin-bottom: .6rem; font-style: italic; }
+    tr.psycho-row { cursor: pointer; }
+    tr.psycho-row:hover td { background: #f5edfb; }
+
+    /* ── Модалки ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(61,43,31,.35); backdrop-filter: blur(3px);
+      z-index: 100; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 18px; padding: 2rem;
+      width: 100%; max-width: 460px; margin: 1rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,.18);
+      animation: slideUp .25s ease; max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 1.25rem;
+    }
+    .modal-header h2 { margin-bottom: 0; }
+    .modal-close {
+      background: none; border: none; font-size: 1.4rem;
+      cursor: pointer; color: var(--text-muted); padding: 0 .25rem; line-height: 1;
+    }
+    .modal-close:hover { color: var(--brown); }
+
+    /* детали сотрудника */
+    .modal-field { margin-bottom: .9rem; }
+    .modal-field .label {
+      font-size: .78rem; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .5px; margin-bottom: .2rem;
+    }
+    .modal-field .value { font-size: 1rem; color: var(--text); font-weight: 500; }
+    .modal-advice {
+      background: var(--lavender-soft); border-left: 3px solid var(--lavender);
+      border-radius: 8px; padding: .75rem 1rem;
+      font-size: .9rem; color: var(--brown); margin-top: 1rem; line-height: 1.5;
+    }
+    .status-badge {
+      display: inline-block; padding: .25rem .75rem;
+      border-radius: 99px; font-size: .85rem; font-weight: 600;
+    }
+    .badge-norm     { background: #f0faf2; color: var(--norm); }
+    .badge-risk     { background: #fff8eb; color: var(--risk); }
+    .badge-critical { background: #fff0f0; color: var(--critical); }
+
+    /* форма внутри модалки */
+    .modal-form label { font-size: .85rem; font-weight: 600; color: var(--brown); margin-bottom: .7rem; }
+    .modal-form label input,
+    .modal-form label select { background: #fdf8ff; }
+    .modal-success {
+      color: var(--norm); font-size: .9rem;
+      margin-top: .5rem; display: none; font-weight: 500;
+    }
+  </style>
 </head>
 <body>
-  <div class="container wide">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-      <h1>Панель аналитики <span id="roleLabel" style="font-size:1rem;color:#718096"></span></h1>
-      <a href="login_staff.html" class="btn-secondary">Выйти</a>
-    </div>
+<div class="container wide">
 
-    <div class="stats-grid" id="statsGrid">
-      <div class="stat-card"><div class="stat-number" id="totalCount">—</div><div class="stat-label">Всего записей</div></div>
-      <div class="stat-card"><div class="stat-number norm" id="normCount">—</div><div class="stat-label">Норма</div></div>
-      <div class="stat-card"><div class="stat-number risk" id="riskCount">—</div><div class="stat-label">В зоне риска</div></div>
-      <div class="stat-card"><div class="stat-number critical" id="criticalCount">—</div><div class="stat-label">Нужна беседа <span class="notification-badge" id="critBadge" style="display:none"></span></div></div>
-    </div>
-
-    <div class="card">
-      <h2>Результаты сотрудников</h2>
-      <div id="tableWrap" style="overflow-x:auto">
-        <table id="resultsTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>ID сотрудника</th>
-              <th>Баллы</th>
-              <th>Дата</th>
-              <th>Статус</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
+  <!-- Шапка -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="static/img/logo.png" alt="logo" class="topbar-logo" onerror="this.style.display='none'">
+      <div>
+        <h1 style="margin-bottom:0">Панель аналитики</h1>
+        <span id="roleLabel" style="font-size:.9rem;color:var(--text-muted)"></span>
       </div>
-      <p id="emptyMsg" class="hidden" style="text-align:center;color:#718096;padding:1rem">Данных пока нет</p>
     </div>
-
+    <div class="topbar-actions">
+      <!-- Кнопки психолога -->
+      <button class="btn-action lavender" id="btnAddTest" style="display:none">+ Добавить тест</button>
+      <button class="btn-action lavender" id="btnAddQuestion" style="display:none">+ Добавить вопрос</button>
+      <!-- Кнопка менеджера -->
+      <button class="btn-action lavender" id="btnAddEmployee" style="display:none">+ Добавить сотрудника</button>
+      <!-- Общие -->
+      <button class="btn-action outline" id="exportBtn">⬇ Отчёт</button>
+      <a href="login_staff.html" class="btn-action outline" style="margin:0">Выйти</a>
+    </div>
   </div>
 
-  <script src="static/js/api.js"></script>
-  <script src="static/js/main.js"></script>
-  <script>
-    requireStaff();
+  <!-- Карточки статистики -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number" id="totalCount">—</div>
+      <div class="stat-label">Всего записей</div>
+    </div>
+    <div class="stat-card" id="normCard">
+      <div class="stat-number norm" id="normCount">—</div>
+      <div class="stat-label">Норма</div>
+    </div>
+    <div class="stat-card" id="riskCard">
+      <div class="stat-number risk" id="riskCount">—</div>
+      <div class="stat-label">В зоне риска</div>
+    </div>
+    <div class="stat-card" id="critCard">
+      <div class="stat-number critical" id="criticalCount">—</div>
+      <div class="stat-label">Нужна беседа <span class="notification-badge" id="critBadge" style="display:none"></span></div>
+    </div>
+  </div>
 
-    const role = getStaffRole();
-    document.getElementById("roleLabel").textContent = role === "psychologist" ? "(Психолог)" : "(Менеджер)";
+  <!-- Таблица -->
+  <div class="card">
+    <h2>Результаты сотрудников</h2>
+    <p class="table-hint" id="tableHint" style="display:none">Дважды нажмите на строку чтобы увидеть подробности</p>
+    <div style="overflow-x:auto">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <p id="emptyMsg" class="hidden" style="text-align:center;color:var(--text-muted);padding:1rem">Данных пока нет</p>
+  </div>
 
-    async function load() {
-      const rows = await Api.getAnalytics();
+</div>
 
-      document.getElementById("totalCount").textContent = rows.length;
-      const norm     = rows.filter(r => r.status === "Норма").length;
-      const risk     = rows.filter(r => r.status === "В зоне риска").length;
-      const critical = rows.filter(r => r.status === "Нужна беседа").length;
+<!-- ══════════════ МОДАЛКИ ══════════════ -->
 
-      document.getElementById("normCount").textContent = norm;
-      document.getElementById("riskCount").textContent = risk;
-      document.getElementById("criticalCount").textContent = critical;
+<!-- Детали сотрудника (психолог, двойной клик) -->
+<div class="modal-overlay" id="modalDetail">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="detailName">—</h2>
+      <button class="modal-close" data-close="modalDetail">✕</button>
+    </div>
+    <div class="modal-field"><div class="label">Дата прохождения</div><div class="value" id="detailDate">—</div></div>
+    <div class="modal-field"><div class="label">Баллы</div><div class="value" id="detailScore">—</div></div>
+    <div class="modal-field"><div class="label">Статус</div><div class="value" id="detailStatus">—</div></div>
+    <div class="modal-advice" id="detailAdvice"></div>
+  </div>
+</div>
 
-      if (critical > 0) {
-        const badge = document.getElementById("critBadge");
-        badge.textContent = critical;
-        badge.style.display = "inline-block";
+<!-- Добавить тест (психолог) -->
+<div class="modal-overlay" id="modalAddTest">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Новый тест</h2>
+      <button class="modal-close" data-close="modalAddTest">✕</button>
+    </div>
+    <div class="modal-form">
+      <label>Название теста
+        <input type="text" id="testName" placeholder="Например: Опросник выгорания MBI">
+      </label>
+      <button type="button" class="btn" id="submitAddTest">Создать тест</button>
+      <p class="modal-success" id="testSuccess">✅ Тест создан!</p>
+    </div>
+  </div>
+</div>
+
+<!-- Добавить вопрос (психолог) -->
+<div class="modal-overlay" id="modalAddQuestion">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Новый вопрос</h2>
+      <button class="modal-close" data-close="modalAddQuestion">✕</button>
+    </div>
+    <div class="modal-form">
+      <label>Тест
+        <select id="questionTestId"></select>
+      </label>
+      <label>Текст вопроса
+        <input type="text" id="questionText" placeholder="Я чувствую усталость после работы">
+      </label>
+      <button type="button" class="btn" id="submitAddQuestion">Добавить вопрос</button>
+      <p class="modal-success" id="questionSuccess">✅ Вопрос добавлен!</p>
+    </div>
+  </div>
+</div>
+
+<!-- Добавить сотрудника (менеджер) -->
+<div class="modal-overlay" id="modalAddEmployee">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Новый сотрудник</h2>
+      <button class="modal-close" data-close="modalAddEmployee">✕</button>
+    </div>
+    <div class="modal-form">
+      <label>ФИО
+        <input type="text" id="empName" placeholder="Иванова Анна Петровна">
+      </label>
+      <label>Должность
+        <input type="text" id="empPosition" placeholder="Разработчик">
+      </label>
+      <label>Отдел
+        <select id="empDept"></select>
+      </label>
+      <label>Пароль
+        <input type="password" id="empPassword" placeholder="Минимум 6 символов">
+      </label>
+      <button type="button" class="btn" id="submitAddEmployee">Добавить сотрудника</button>
+      <p class="modal-success" id="employeeSuccess">✅ Сотрудник добавлен!</p>
+    </div>
+  </div>
+</div>
+
+<script src="static/js/api.js"></script>
+<script src="static/js/main.js"></script>
+<script>
+  requireStaff();
+  const role = getStaffRole();
+  document.getElementById("roleLabel").textContent =
+    role === "psychologist" ? "Психолог" : "Менеджер";
+
+  // ── Показать нужные кнопки ──
+  if (role === "psychologist") {
+    document.getElementById("btnAddTest").style.display     = "inline-flex";
+    document.getElementById("btnAddQuestion").style.display = "inline-flex";
+    document.getElementById("tableHint").style.display      = "block";
+  } else {
+    document.getElementById("btnAddEmployee").style.display = "inline-flex";
+    document.getElementById("normCard").style.display       = "none";
+    document.getElementById("riskCard").style.display       = "none";
+    document.getElementById("critCard").style.display       = "none";
+  }
+
+  // ── Данные ──
+  let allRows = [];
+
+  async function load() {
+    allRows = await Api.getAnalytics();
+    document.getElementById("totalCount").textContent = allRows.length;
+
+    if (role === "psychologist") {
+      document.getElementById("normCount").textContent     = allRows.filter(r => r.status === "Норма").length;
+      document.getElementById("riskCount").textContent     = allRows.filter(r => r.status === "В зоне риска").length;
+      document.getElementById("criticalCount").textContent = allRows.filter(r => r.status === "Нужна беседа").length;
+      const crit = allRows.filter(r => r.status === "Нужна беседа").length;
+      if (crit > 0) {
+        const b = document.getElementById("critBadge");
+        b.textContent = crit; b.style.display = "inline-block";
       }
-
-      const tbody = document.getElementById("tableBody");
-      if (rows.length === 0) {
-        document.getElementById("emptyMsg").classList.remove("hidden");
-        return;
-      }
-
-      rows.forEach((r, i) => {
-        const cls = r.status === "Норма" ? "norm-row"
-                  : r.status === "В зоне риска" ? "risk-row" : "critical-row";
-        const date = new Date(r.date_passed).toLocaleDateString("ru-RU");
-
-        // Менеджер видит только ФИО-заменитель, баллы и дату (без статуса)
-        const statusCell = role === "manager"
-          ? `<td>—</td>`
-          : `<td>${r.status}</td>`;
-
-        tbody.innerHTML += `
-          <tr class="${cls}">
-            <td>${i + 1}</td>
-            <td>${r.emp_id}</td>
-            <td>${r.total_points}</td>
-            <td>${date}</td>
-            ${statusCell}
-          </tr>`;
-      });
     }
 
-    load().catch(e => console.error(e));
-  </script>
+    const thead = document.getElementById("tableHead");
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+
+    if (allRows.length === 0) {
+      document.getElementById("emptyMsg").classList.remove("hidden");
+      return;
+    }
+
+    if (role === "manager") {
+      thead.innerHTML = `<tr><th>#</th><th>ФИО сотрудника</th><th>Дата</th><th>Статус теста</th></tr>`;
+      allRows.forEach((r, i) => {
+        const date = new Date(r.date_passed).toLocaleDateString("ru-RU");
+        tbody.innerHTML += `<tr>
+          <td>${i+1}</td><td>${r.full_name}</td><td>${date}</td>
+          <td style="color:var(--norm);font-weight:600">✅ Пройден</td>
+        </tr>`;
+      });
+    } else {
+      thead.innerHTML = `<tr><th>#</th><th>ФИО сотрудника</th><th>Баллы</th><th>Дата</th><th>Статус</th></tr>`;
+      allRows.forEach((r, i) => {
+        const date    = new Date(r.date_passed).toLocaleDateString("ru-RU");
+        const cls     = r.status === "Норма" ? "norm-row" : r.status === "В зоне риска" ? "risk-row" : "critical-row";
+        const bdgCls  = r.status === "Норма" ? "badge-norm" : r.status === "В зоне риска" ? "badge-risk" : "badge-critical";
+        tbody.innerHTML += `<tr class="${cls} psycho-row" data-idx="${i}">
+          <td>${i+1}</td><td>${r.full_name}</td><td>${r.total_points}</td><td>${date}</td>
+          <td><span class="status-badge ${bdgCls}">${r.status}</span></td>
+        </tr>`;
+      });
+      tbody.querySelectorAll("tr.psycho-row").forEach(tr => {
+        tr.addEventListener("dblclick", () => openDetail(allRows[+tr.dataset.idx]));
+      });
+    }
+  }
+
+  // ── Детали сотрудника ──
+  function openDetail(r) {
+    const bdgCls = r.status === "Норма" ? "badge-norm" : r.status === "В зоне риска" ? "badge-risk" : "badge-critical";
+    document.getElementById("detailName").textContent   = r.full_name;
+    document.getElementById("detailDate").textContent   = new Date(r.date_passed).toLocaleDateString("ru-RU");
+    document.getElementById("detailScore").textContent  = r.total_points + " баллов";
+    document.getElementById("detailStatus").innerHTML   = `<span class="status-badge ${bdgCls}">${r.status}</span>`;
+    document.getElementById("detailAdvice").textContent = r.advice;
+    openModal("modalDetail");
+  }
+
+  // ── Экспорт CSV ──
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    if (!allRows.length) return alert("Нет данных");
+    let csv = role === "manager" ? "ФИО;Дата;Статус теста\n" : "ФИО;Баллы;Дата;Статус\n";
+    allRows.forEach(r => {
+      const date = new Date(r.date_passed).toLocaleDateString("ru-RU");
+      csv += role === "manager"
+        ? `${r.full_name};${date};Пройден\n`
+        : `${r.full_name};${r.total_points};${date};${r.status}\n`;
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"}));
+    a.download = `mental_stats_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  });
+
+  // ── Добавить тест ──
+  document.getElementById("btnAddTest").addEventListener("click", () => openModal("modalAddTest"));
+  document.getElementById("submitAddTest").addEventListener("click", async () => {
+    const name = document.getElementById("testName").value.trim();
+    if (!name) return;
+    await Api.addTest(name);
+    document.getElementById("testName").value = "";
+    showSuccess("testSuccess");
+  });
+
+  // ── Добавить вопрос ──
+  document.getElementById("btnAddQuestion").addEventListener("click", async () => {
+    const tests = await Api.getTests();
+    const sel = document.getElementById("questionTestId");
+    sel.innerHTML = tests.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+    openModal("modalAddQuestion");
+  });
+  document.getElementById("submitAddQuestion").addEventListener("click", async () => {
+    const test_id  = +document.getElementById("questionTestId").value;
+    const question = document.getElementById("questionText").value.trim();
+    if (!question) return;
+    await Api.addQuestion(test_id, question);
+    document.getElementById("questionText").value = "";
+    showSuccess("questionSuccess");
+  });
+
+  // ── Добавить сотрудника ──
+  document.getElementById("btnAddEmployee").addEventListener("click", async () => {
+    const depts = await Api.getDepartments();
+    const sel = document.getElementById("empDept");
+    sel.innerHTML = depts.map(d => `<option value="${d.id}">${d.title}</option>`).join("");
+    openModal("modalAddEmployee");
+  });
+  document.getElementById("submitAddEmployee").addEventListener("click", async () => {
+    const full_name = document.getElementById("empName").value.trim();
+    const position  = document.getElementById("empPosition").value.trim();
+    const dept_id   = +document.getElementById("empDept").value;
+    const password  = document.getElementById("empPassword").value;
+    if (!full_name || !position || !password) return alert("Заполните все поля");
+    await Api.addEmployee({ full_name, position, dept_id, password });
+    document.getElementById("empName").value     = "";
+    document.getElementById("empPosition").value = "";
+    document.getElementById("empPassword").value = "";
+    showSuccess("employeeSuccess");
+    load();
+  });
+
+  // ── Утилиты модалок ──
+  function openModal(id) { document.getElementById(id).classList.add("open"); }
+  function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+  function showSuccess(id) {
+    const el = document.getElementById(id);
+    el.style.display = "block";
+    setTimeout(() => { el.style.display = "none"; }, 2500);
+  }
+
+  document.querySelectorAll(".modal-close").forEach(btn => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.close));
+  });
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay) overlay.classList.remove("open");
+    });
+  });
+
+  load().catch(e => console.error(e));
+</script>
 </body>
 </html>
