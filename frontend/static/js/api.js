@@ -44,4 +44,46 @@ const Api = {
     if (!r.ok) throw new Error("Не удалось загрузить аналитику");
     return r.json();
   },
+
+  async getDepartments() {
+    const r = await fetch(`${BASE}/departments`);
+    if (!r.ok) throw new Error("Не удалось загрузить отделы");
+    return r.json();
+  },
+
+  async addEmployee(data) {
+    const r = await fetch(`${BASE}/employees`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!r.ok) throw new Error("Не удалось добавить сотрудника");
+    return r.json();
+  },
+
+  async getTests() {
+    const r = await fetch(`${Q_BASE}/tests`);
+    if (!r.ok) throw new Error("Не удалось загрузить тесты");
+    return r.json();
+  },
+
+  async addTest(name) {
+    const r = await fetch(`${Q_BASE}/tests`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!r.ok) throw new Error("Не удалось создать тест");
+    return r.json();
+  },
+
+  async addQuestion(test_id, question) {
+    const r = await fetch(`${Q_BASE}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ test_id, question }),
+    });
+    if (!r.ok) throw new Error("Не удалось добавить вопрос");
+    return r.json();
+  },
 };
