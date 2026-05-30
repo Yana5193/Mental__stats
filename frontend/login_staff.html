@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход персонала — mental_stats</title>
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+  <div class="container center">
+    <img src="static/img/logo.png" alt="logo" class="logo" onerror="this.style.display='none'">
+    <h1>Вход для персонала</h1>
+
+    <div class="card">
+      <form id="staffForm">
+        <label>Роль
+          <select id="role">
+            <option value="psychologist">Психолог</option>
+            <option value="manager">Менеджер</option>
+          </select>
+        </label>
+        <label>Пароль
+          <input type="password" id="staffPassword" required>
+        </label>
+        <button type="submit">Войти</button>
+      </form>
+      <p id="errorMsg" class="error hidden"></p>
+    </div>
+
+    <a href="login.html" class="btn-secondary">← Назад</a>
+  </div>
+
+  <script>
+    const STAFF_CREDS = { psychologist: "psycho88", manager: "manager77" };
+
+    document.getElementById("staffForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const role = document.getElementById("role").value;
+      const pwd  = document.getElementById("staffPassword").value;
+      const errorMsg = document.getElementById("errorMsg");
+
+      if (STAFF_CREDS[role] === pwd) {
+        sessionStorage.setItem("staff_role", role);
+        window.location.href = "index.html";
+      } else {
+        errorMsg.textContent = "Неверный пароль";
+        errorMsg.classList.remove("hidden");
+      }
+    });
+  </script>
+</body>
+</html>
