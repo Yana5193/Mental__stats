@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=77.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "psych_analyzer"
+version = "0.1.1"
+description = "Библиотека для валидации и психологического анализа результатов тестирования сотрудников"
+readme = "README.md"
+authors = [
+    { name = "yana and irina" }
+]
+license = "MIT"
+license-files = ["LICENSE"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [] 
+
+[tool.setuptools.packages.find]
+where = ["src"]
