@@ -2,11 +2,11 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from .base import Base
 
-class Departament(Base):
+class Department(Base):
     __tablename__="departments"
 
     id=Column(Integer,primary_key=True,autoincrement=True)
-    tittle=Column(String,unique=True,nullable=True)
+    title=Column(String,unique=True,nullable=True)
 
 class Employee(Base):
 

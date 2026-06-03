@@ -1,6 +1,6 @@
 """Валидация отправляемых на бэк результатов тестов."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List
 
 class SubmitAnswersRequest(BaseModel):
@@ -16,7 +16,7 @@ class SubmitAnswersRequest(BaseModel):
                 raise ValueError(f"Ответ {i} должен быть от 1 до 5, получено {a}")
         return v
 
-class AssesmentResult(BaseModel):
+class AssessmentResult(BaseModel):
     emp_id: int
     total_points: int
     status: str
