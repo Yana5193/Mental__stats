@@ -1,0 +1,36 @@
+sequenceDiagram
+    actor E as Сотрудник
+    participant F as frontend
+    participant A as app :8000
+    participant Q as questions_service :8001
+    participant L as psych_analyzer
+    participant N as notification_service :8002
+    participant DB as SQLite
+
+    E->>F: открывает login.html
+    E->>F: вводит ФИО + пароль
+    F->>A: POST /api/v1/login
+    A->>DB: SELECT employee WHERE name=...
+    DB-->>A: emp_id
+    A-->>F: {emp_id, full_name}
+
+    F->>Q: GET /tests/1/questions
+    Q-->>F: список вопросов
+
+    loop Каждый вопрос
+        F-->>E: показывает вопрос
+        E->>F: выбирает ответ 1–5
+    end
+
+    F->>A: POST /api/v1/submit {emp_id, answers, consistency_pairs}
+    A->>L: calculate_score(answers, consistency_pairs)
+    L-->>A: total_points
+    A->>L: get_status(total_points)
+    L-->>A: {label, advice}
+    A->>DB: INSERT staff_status
+    alt статус = "Нужна беседа"
+        A->>N: POST /alert
+        N-->>A: 202 logged
+    end
+    A-->>F: {total_points, status, advice}
+    F-->>E: показывает результат
