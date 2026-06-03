@@ -1,0 +1,32 @@
+@startuml
+left to right direction
+
+actor "Сотрудник" as E
+actor "Психолог" as P
+actor "Менеджер" as M
+
+rectangle "mental_stats" {
+  usecase "Авторизоваться" as UC1
+  usecase "Пройти тест" as UC2
+  usecase "Увидеть результат" as UC3
+  usecase "Войти как персонал" as UC4
+  usecase "Просмотреть аналитику\n(с баллами и статусами)" as UC5
+  usecase "Просмотреть аналитику\n(только факт прохождения)" as UC6
+  usecase "Получить уведомление\nо критичном случае" as UC7
+  usecase "Добавить тест / вопрос" as UC8
+  usecase "Добавить сотрудника" as UC9
+}
+
+E --> UC1
+E --> UC2
+E --> UC3
+
+P --> UC4
+P --> UC5
+P --> UC7
+P --> UC8
+
+M --> UC4
+M --> UC6
+M --> UC9
+@enduml
