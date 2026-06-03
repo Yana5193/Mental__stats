@@ -57,7 +57,9 @@ def calculate_score(answers: Iterable[int],
 
 
 def get_status(score: int) -> dict:
-    """Возвращает {'label': str, 'advice': str} по набранным баллам."""
+    """Возвращает {'label': str, 'advice': str} по набранным баллам"""
+    if score < 0:
+        raise ValueError(f"Счёт не может быть отрицательным, получено: {score}")
     for min_score, max_score, label, advice in SCORE_THRESHOLDS:
         if min_score <= score <= max_score:
             return {"label": label, "advice": advice}

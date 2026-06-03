@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "psych_analyzer"
-version = "0.1.1"
+version = "0.1.2"
 description = "Библиотека для валидации и психологического анализа результатов тестирования сотрудников"
 readme = "README.md"
 authors = [
