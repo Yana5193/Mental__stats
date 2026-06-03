@@ -1,0 +1,22 @@
+flowchart TD
+    Employee["Сотрудник"]
+    Psychologist[" Психолог"]
+    Manager["Менеджер"]
+
+    Frontend["frontend\nnginx :80"]
+    App["app\nFastAPI :8000"]
+    QS["questions_service\nFastAPI :8001"]
+    NS["notification_service\nFastAPI :8002"]
+    Lib["shared_lib\npsych_analyzer"]
+    DB[("SQLite\nmental_health.db")]
+
+    Employee -->|"вход + тест"| Frontend
+    Psychologist -->|"аналитика"| Frontend
+    Manager -->|"аналитика"| Frontend
+
+    Frontend -->|"REST"| App
+    Frontend -->|"GET /questions"| QS
+
+    App -->|"calculate_score()\nget_status()"| Lib
+    App -->|"read/write"| DB
+    App -->|"POST /alert"| NS
