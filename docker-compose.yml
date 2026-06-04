@@ -1,0 +1,51 @@
+services:
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: .
+      dockerfile: backend/app/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: sqlite:////data/mental_health.db
+      NOTIFICATION_SERVICE_URL: http://notification_service:8002
+    volumes:
+      - db_data:/data
+    depends_on:
+      - questions_service
+      - notification_service
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/analytics')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  questions_service:
+    build: ./backend/questions_service
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/tests')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  notification_service:
+    build: ./backend/notification_service
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  db_data:
