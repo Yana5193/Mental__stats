@@ -18,11 +18,11 @@ const Api = {
     return r.json();
   },
 
-  async submitAnswers(emp_id, answers) {
+  async submitAnswers(emp_id, answers, consistency_pairs = []) {
     const r = await fetch(`${BASE}/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emp_id, answers }),
+      body: JSON.stringify({ emp_id, answers, consistency_pairs }),
     });
     if (r.status === 429) throw new Error("Тест можно проходить раз в 30 дней");
     if (r.status === 422) {

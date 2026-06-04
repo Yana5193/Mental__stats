@@ -10,6 +10,6 @@ function getStaffRole() {
 function requireAuth(redirect = "login.html") {
   if (!getEmpId()) window.location.href = redirect;
 }
-function requireStaff(redirect = "login_staff.html") {
+function requireStaff(redirect = "login.html") {
   if (!getStaffRole()) window.location.href = redirect;
 }
