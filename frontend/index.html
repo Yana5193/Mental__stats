@@ -156,6 +156,7 @@
       <h2 id="detailName">—</h2>
       <button class="modal-close" data-close="modalDetail">✕</button>
     </div>
+    <div class="modal-field"><div class="label">Отдел</div><div class="value" id="detailDept">—</div></div>
     <div class="modal-field"><div class="label">Дата прохождения</div><div class="value" id="detailDate">—</div></div>
     <div class="modal-field"><div class="label">Баллы</div><div class="value" id="detailScore">—</div></div>
     <div class="modal-field"><div class="label">Статус</div><div class="value" id="detailStatus">—</div></div>
@@ -303,6 +304,7 @@
   function openDetail(r) {
     const bdgCls = r.status === "Норма" ? "badge-norm" : r.status === "В зоне риска" ? "badge-risk" : "badge-critical";
     document.getElementById("detailName").textContent   = r.full_name;
+    document.getElementById("detailDept").textContent   = r.dept_title || "—";
     document.getElementById("detailDate").textContent   = new Date(r.date_passed).toLocaleDateString("ru-RU");
     document.getElementById("detailScore").textContent  = r.total_points + " баллов";
     document.getElementById("detailStatus").innerHTML   = `<span class="status-badge ${bdgCls}">${r.status}</span>`;

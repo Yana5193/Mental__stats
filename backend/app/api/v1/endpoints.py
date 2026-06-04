@@ -114,8 +114,9 @@ def get_reminder(emp_id: int, db: Session = Depends(get_db)):
 @router.get("/analytics")
 def get_analytics(db: Session = Depends(get_db)):
     rows = (
-        db.query(StaffStatus, Employee)
+        db.query(StaffStatus, Employee, Department)
         .join(Employee, StaffStatus.emp_id == Employee.id)
+        .outerjoin(Department, Employee.dept_id == Department.id)
         .order_by(StaffStatus.date_passed.desc())
         .all()
     )
@@ -123,12 +124,13 @@ def get_analytics(db: Session = Depends(get_db)):
         {
             "emp_id": s.emp_id,
             "full_name": e.full_name,
+            "dept_title": d.title if d else "—",
             "total_points": s.total_points,
             "status": s.status,
             "advice": s.advice,
             "date_passed": s.date_passed.isoformat(),
         }
-        for s, e in rows
+        for s, e, d in rows
     ]
 
 
