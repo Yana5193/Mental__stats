@@ -37,7 +37,7 @@
 ## Граница переиспользуемой логики
 
 `shared_lib/src/psych_analyzer` — чистая библиотека без зависимостей от FastAPI или БД.
-Опубликована на TestPyPI как пакет `psych-analyzer` и устанавливается в Docker-образ командой:
+Опубликована на TestPyPI как пакет `psych_analyzer` и устанавливается в Docker-образ командой:
 
 ```
 pip install --index-url https://test.pypi.org/simple/ \
