@@ -179,3 +179,18 @@ def _send_alert(emp_id: int, score: int) -> None:
         logging.warning("notification_service returned %s for emp_id=%s", e.response.status_code, emp_id)
     except Exception as e:
         logging.warning("notification_service unreachable: %s", e)
+
+STAFF_CREDS = {
+    "psychologist": "psycho88",
+    "manager": "manager77",
+}
+
+class StaffLoginRequest(BaseModel):
+    role: str
+    password: str
+
+@router.post("/staff-login")
+def staff_login(body: StaffLoginRequest):
+    if STAFF_CREDS.get(body.role) != body.password:
+        raise HTTPException(status_code=401, detail="Неверный пароль")
+    return {"role": body.role}

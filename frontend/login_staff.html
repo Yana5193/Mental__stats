@@ -31,22 +31,26 @@
   </div>
 
   <script>
-    const STAFF_CREDS = { psychologist: "psycho88", manager: "manager77" };
+  document.getElementById("staffForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const role = document.getElementById("role").value;
+    const pwd  = document.getElementById("staffPassword").value;
+    const errorMsg = document.getElementById("errorMsg");
 
-    document.getElementById("staffForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const role = document.getElementById("role").value;
-      const pwd  = document.getElementById("staffPassword").value;
-      const errorMsg = document.getElementById("errorMsg");
-
-      if (STAFF_CREDS[role] === pwd) {
-        sessionStorage.setItem("staff_role", role);
-        window.location.href = "index.html";
-      } else {
-        errorMsg.textContent = "Неверный пароль";
-        errorMsg.classList.remove("hidden");
-      }
+    try {
+      const r = await fetch("http://localhost:8000/api/v1/staff-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, password: pwd }),
     });
+      if (!r.ok) throw new Error();
+      sessionStorage.setItem("staff_role", role);
+      window.location.href = "index.html";
+  } catch {
+      errorMsg.textContent = "Неверный пароль";
+      errorMsg.classList.remove("hidden");
+  }
+});
   </script>
 </body>
 </html>
