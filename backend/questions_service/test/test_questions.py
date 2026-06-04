@@ -18,6 +18,7 @@ def test_get_questions_for_existing_test():
     data = r.json()
     assert "questions" in data
     assert len(data["questions"]) > 0
+    assert "consistency_pairs" in data
 
 
 def test_get_questions_for_unknown_test():
@@ -26,8 +27,8 @@ def test_get_questions_for_unknown_test():
 
 
 def test_add_question_to_existing_test(tmp_path, monkeypatch):
-    import shutil, os, json
-    src = os.path.join(os.path.dirname(__file__), "..","questions.json")
+    import shutil, os
+    src = os.path.join(os.path.dirname(__file__), "..", "questions.json")
     tmp_file = tmp_path / "questions.json"
     shutil.copy(src, tmp_file)
 
@@ -42,14 +43,7 @@ def test_add_question_to_existing_test(tmp_path, monkeypatch):
 def test_add_question_to_unknown_test():
     r = client.post("/questions", json={"test_id": 9999, "question": "X"})
     assert r.status_code == 404
-    
-def test_get_questions_for_existing_test():
-    r = client.get("/tests/1/questions")
-    assert r.status_code == 200
-    data = r.json()
-    assert "questions" in data
-    assert len(data["questions"]) > 0
-    assert "consistency_pairs" in data     
+
 
 def test_add_test(tmp_path, monkeypatch):
     import shutil, os
@@ -62,4 +56,3 @@ def test_add_test(tmp_path, monkeypatch):
 
     r = client.post("/tests", json={"name": "Новый тест"})
     assert r.status_code == 201
-
