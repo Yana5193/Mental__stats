@@ -47,11 +47,13 @@
     let questions = [];
     let answers = [];
     let current = 0;
+    let consistencyPairs = [];
 
     async function init() {
       try {
         const data = await Api.getQuestions(1);
         questions = data.questions;
+        consistencyPairs = data.consistency_pairs || [];
         document.getElementById("loadingBlock").style.display = "none";
         document.getElementById("testBlock").style.display = "block";
         showQuestion();
@@ -89,7 +91,7 @@
       } else {
         document.getElementById("testBlock").style.display = "none";
         try {
-          const result = await Api.submitAnswers(empId, answers);
+          const result = await Api.submitAnswers(empId, answers, consistencyPairs);
           document.getElementById("resultScore").textContent = result.total_points + " баллов";
           document.getElementById("resultStatus").textContent = result.status;
           document.getElementById("resultAdvice").textContent = result.advice;
