@@ -13,7 +13,7 @@ help:
 	@echo "  make check             - test + build-lib (полная проверка)"
 	@echo "  make build-lib         - собрать пакет psych-analyzer"
 	@echo "  make install-lib-local - установить пакет локально"
-	@echo "  make docs              - показать где лежит документация"
+	@echo "  make docs              - собрать документацию (mkdocs build)"
 	@echo "  make clean             - удалить временные файлы"
 
 setup:
