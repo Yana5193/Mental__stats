@@ -13,9 +13,8 @@ services:
       dockerfile: backend/app/Dockerfile
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: sqlite:////data/mental_health.db
-      NOTIFICATION_SERVICE_URL: http://notification_service:8002
+    env_file:
+      - .env
     volumes:
       - db_data:/data
     depends_on:
