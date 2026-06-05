@@ -183,8 +183,8 @@ def _send_alert(emp_id: int, score: int) -> None:
         logging.warning("notification_service unreachable: %s", e)
 
 STAFF_CREDS = {
-    "psychologist": "psycho88",
-    "manager": "manager77",
+    "psychologist": os.getenv("PSYCHO_PASSWORD"),
+    "manager": os.getenv("MANAGER_PASSWORD"),
 }
 
 class StaffLoginRequest(BaseModel):
