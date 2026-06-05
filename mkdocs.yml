@@ -1,0 +1,21 @@
+site_name: Mental Stats
+site_description: Система мониторинга психологического состояния сотрудников
+docs_dir: docs
+site_dir: site
+
+nav:
+  - Главная: index.md
+  - Спецификация: specification.md
+  - Архитектура: architecture.md
+  - Предметная область: domain.md
+
+theme:
+  name: material
+  language: ru
+  palette:
+    primary: indigo
+    accent: indigo
+
+markdown_extensions:
+  - tables
+  - fenced_code
