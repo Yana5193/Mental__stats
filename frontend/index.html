@@ -102,6 +102,10 @@
     </div>
     <div class="topbar-actions">
       <!-- Кнопки психолога -->
+      <button class="btn-action lavender" id="btnAlerts" style="display:none; position:relative">
+        🔔 Уведомления
+        <span class="notification-badge" id="alertsBadge" style="display:none; margin-left:.4rem"></span>
+      </button>
       <button class="btn-action lavender" id="btnAddTest" style="display:none">+ Добавить тест</button>
       <button class="btn-action lavender" id="btnAddQuestion" style="display:none">+ Добавить вопрос</button>
       <!-- Кнопка менеджера -->
@@ -148,6 +152,19 @@
 </div>
 
 <!-- ══════════════ МОДАЛКИ ══════════════ -->
+
+<!-- Уведомления (психолог) -->
+<div class="modal-overlay" id="modalAlerts">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h2>Уведомления</h2>
+      <button class="modal-close" data-close="modalAlerts">✕</button>
+    </div>
+    <div id="alertsList" style="display:flex;flex-direction:column;gap:.6rem">
+      <p style="color:var(--text-muted);text-align:center;padding:1rem">Загрузка...</p>
+    </div>
+  </div>
+</div>
 
 <!-- Детали сотрудника (психолог, двойной клик) -->
 <div class="modal-overlay" id="modalDetail">
@@ -237,6 +254,7 @@
 
   // ── Показать нужные кнопки ──
   if (role === "psychologist") {
+    document.getElementById("btnAlerts").style.display      = "inline-flex";
     document.getElementById("btnAddTest").style.display     = "inline-flex";
     document.getElementById("btnAddQuestion").style.display = "inline-flex";
     document.getElementById("tableHint").style.display      = "block";
@@ -375,6 +393,72 @@
     load();
   });
 
+  // ── Уведомления ──
+  async function loadAlertsBadge() {
+    if (role !== "psychologist") return;
+    try {
+      const unread = await Api.getAlerts(true);
+      const b = document.getElementById("alertsBadge");
+      if (unread.length > 0) {
+        b.textContent = unread.length;
+        b.style.display = "inline-block";
+      } else {
+        b.style.display = "none";
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  async function renderAlerts() {
+    const list = document.getElementById("alertsList");
+    list.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:1rem">Загрузка...</p>`;
+    try {
+      const alerts = await Api.getAlerts(false);
+      if (alerts.length === 0) {
+        list.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:1rem">Уведомлений нет</p>`;
+        return;
+      }
+      list.innerHTML = "";
+      alerts.forEach(a => {
+        const date = new Date(a.created_at).toLocaleString("ru-RU");
+        const item = document.createElement("div");
+        item.style.cssText = `
+          padding:.75rem 1rem; border-radius:8px;
+          background:${a.is_read ? "#f7f4fa" : "var(--lavender-soft)"};
+          border-left:3px solid ${a.is_read ? "var(--border)" : "var(--critical)"};
+          display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem;
+        `;
+        item.innerHTML = `
+          <div style="flex:1">
+            <div style="font-weight:${a.is_read ? "400" : "600"}; color:var(--brown); margin-bottom:.2rem">
+              ${a.message}
+            </div>
+            <div style="font-size:.78rem; color:var(--text-muted)">${date}</div>
+          </div>
+          ${a.is_read
+            ? `<span style="font-size:.78rem;color:var(--text-muted)">прочитано</span>`
+            : `<button class="btn-action outline" data-alert-id="${a.id}" style="padding:.3rem .7rem;font-size:.78rem">Прочитать</button>`
+          }
+        `;
+        list.appendChild(item);
+      });
+      list.querySelectorAll("button[data-alert-id]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          await Api.markAlertRead(+btn.dataset.alertId);
+          await renderAlerts();
+          await loadAlertsBadge();
+        });
+      });
+    } catch (e) {
+      list.innerHTML = `<p style="color:var(--critical);text-align:center;padding:1rem">Ошибка загрузки</p>`;
+      console.error(e);
+    }
+  }
+
+  document.getElementById("btnAlerts").addEventListener("click", async () => {
+    openModal("modalAlerts");
+    await renderAlerts();
+  });
+
   // ── Утилиты модалок ──
   function openModal(id) { document.getElementById(id).classList.add("open"); }
   function closeModal(id) { document.getElementById(id).classList.remove("open"); }
@@ -394,6 +478,10 @@
   });
 
   load().catch(e => console.error(e));
+  loadAlertsBadge();
+  if (role === "psychologist") {
+    setInterval(loadAlertsBadge, 30000);
+  }
 </script>
 </body>
 </html>

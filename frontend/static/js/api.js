@@ -1,5 +1,6 @@
 const BASE = "http://localhost:8000/api/v1";
 const Q_BASE = "http://localhost:8001";
+const N_BASE = "http://localhost:8002";
 
 const Api = {
   async login(full_name, password) {
@@ -84,6 +85,19 @@ const Api = {
       body: JSON.stringify({ test_id, question }),
     });
     if (!r.ok) throw new Error("Не удалось добавить вопрос");
+    return r.json();
+  },
+
+  async getAlerts(unreadOnly = false) {
+    const url = unreadOnly ? `${N_BASE}/alerts?unread_only=true` : `${N_BASE}/alerts`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("Не удалось загрузить уведомления");
+    return r.json();
+  },
+
+  async markAlertRead(alert_id) {
+    const r = await fetch(`${N_BASE}/alerts/${alert_id}/read`, { method: "POST" });
+    if (!r.ok) throw new Error("Не удалось отметить уведомление");
     return r.json();
   },
 };

@@ -40,6 +40,8 @@ services:
     build: ./backend/notification_service
     ports:
       - "8002:8002"
+    volumes:
+      - notification_data:/data
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
       interval: 10s
@@ -48,3 +50,4 @@ services:
 
 volumes:
   db_data:
+  notification_data:
