@@ -12,6 +12,12 @@
     <h1>Психологический тест</h1>
     <p class="subtitle" id="greeting"></p>
 
+    <div id="selectBlock" class="card center" style="display:none">
+      <h2 style="margin-bottom:1rem">Выберите тест</h2>
+      <div id="testListBlock"></div>
+      <a href="login.html" class="btn-secondary" style="margin-top:1rem;display:block">Выйти</a>
+    </div>
+
     <div id="loadingBlock" class="card center">Загружаем вопросы…</div>
 
     <div id="testBlock" class="card" style="display:none">
@@ -51,14 +57,51 @@
 
     async function init() {
       try {
-        const data = await Api.getQuestions(1);
+        const tests = await Api.getTests();
+        document.getElementById("loadingBlock").style.display = "none";
+
+        if (tests.length === 1) {
+          // Если тест один — сразу загружаем без экрана выбора
+          await loadTest(tests[0].id);
+        } else {
+          // Показываем список тестов на выбор
+          const listBlock = document.getElementById("testListBlock");
+          tests.forEach(t => {
+            const btn = document.createElement("button");
+            btn.className = "btn";
+            btn.textContent = t.name;
+            btn.style.display = "block";
+            btn.style.width = "100%";
+            btn.style.marginBottom = "0.75rem";
+            btn.onclick = () => {
+              document.getElementById("selectBlock").style.display = "none";
+              loadTest(t.id);
+            };
+            listBlock.appendChild(btn);
+          });
+          document.getElementById("selectBlock").style.display = "block";
+        }
+      } catch (e) {
+        document.getElementById("loadingBlock").style.display = "none";
+        const err = document.getElementById("errorBlock");
+        err.textContent = e.message;
+        err.style.display = "block";
+      }
+    }
+
+    async function loadTest(testId) {
+      const loading = document.getElementById("loadingBlock");
+      loading.textContent = "Загружаем вопросы…";
+      loading.style.display = "block";
+      try {
+        const data = await Api.getQuestions(testId);
         questions = data.questions;
         consistencyPairs = data.consistency_pairs || [];
-        document.getElementById("loadingBlock").style.display = "none";
+        loading.style.display = "none";
         document.getElementById("testBlock").style.display = "block";
         showQuestion();
       } catch (e) {
-        document.getElementById("loadingBlock").style.display = "none";
+        loading.style.display = "none";
         const err = document.getElementById("errorBlock");
         err.textContent = e.message;
         err.style.display = "block";
@@ -100,7 +143,7 @@
           const err = document.getElementById("errorBlock");
           err.innerHTML = `
             <p style="margin-bottom:1rem">${e.message}</p>
-            <button class="btn" onclick="restartTest()">← Пройти тест заново</button>
+            <button class="btn" onclick="goToTestSelect()">← К выбору теста</button>
           `;
           err.style.display = "block";
         }
@@ -113,6 +156,15 @@
       document.getElementById("errorBlock").style.display = "none";
       document.getElementById("testBlock").style.display = "block";
       showQuestion();
+    }
+
+    function goToTestSelect() {
+      answers = [];
+      current = 0;
+      questions = [];
+      document.getElementById("errorBlock").style.display = "none";
+      document.getElementById("testBlock").style.display = "none";
+      document.getElementById("selectBlock").style.display = "block";
     }
 
     init();
