@@ -19,6 +19,7 @@ help:
 setup:
 	pip install -e shared_lib/
 	pip install -r backend/requirements.txt
+	pip install -r requirements-docs.txt
 
 test:
 	cd backend && python -m pytest tests/test_api.py -v
@@ -61,11 +62,7 @@ install-lib-local:
 	pip install -e shared_lib/
 
 docs:
-	@echo "Документация находится в docs/"
-	@echo "  docs/specification.md  - требования"
-	@echo "  docs/architecture.md   - архитектура"
-	@echo "  backend/app/domain.md  - предметная область"
-	@echo "  docs/diagrams/         - диаграммы"
+	mkdocs build
 
 smoke:
 	python smoke_tests.py
@@ -74,4 +71,4 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.pyc" -delete 2>/dev/null || true
 	find . -name "*.db" -delete 2>/dev/null || true
-	rm -rf htmlcov .coverage 2>/dev/null || true
+	rm -rf htmlcov .coverage site/ 2>/dev/null || true
